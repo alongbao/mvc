@@ -3,7 +3,7 @@
 namespace liuguang\mvc;
 
 /**
- * ÎÄ¼þ´æ´¢Àà
+ * æ–‡ä»¶å­˜å‚¨ç±»
  *
  * @author liuguang
  *        
