@@ -20,8 +20,8 @@ if (! defined ( 'APP_CLASS_PATH' ))
 if (! defined ( 'APP_EXTCLASS_PATH' ))
 	define ( 'APP_EXTCLASS_PATH', APP_PATH . DIRECTORY_SEPARATOR . 'extclass' );
 	// 加载基础类
-include APP_PATH . DIRECTORY_SEPARATOR . 'class' . DIRECTORY_SEPARATOR . 'liuguang' . DIRECTORY_SEPARATOR . 'mvc' . DIRECTORY_SEPARATOR . 'DataMap.class.php';
-include APP_PATH . DIRECTORY_SEPARATOR . 'class' . DIRECTORY_SEPARATOR . 'liuguang' . DIRECTORY_SEPARATOR . 'mvc' . DIRECTORY_SEPARATOR . 'ErrHandler.class.php';
+include MVC_PATH . DIRECTORY_SEPARATOR . 'class' . DIRECTORY_SEPARATOR . 'liuguang' . DIRECTORY_SEPARATOR . 'mvc' . DIRECTORY_SEPARATOR . 'DataMap.class.php';
+include MVC_PATH . DIRECTORY_SEPARATOR . 'class' . DIRECTORY_SEPARATOR . 'liuguang' . DIRECTORY_SEPARATOR . 'mvc' . DIRECTORY_SEPARATOR . 'ErrHandler.class.php';
 /**
  * 框架的类库加载机制
  *
@@ -123,7 +123,7 @@ class Application {
 	private function __construct() {
 		$config = array ();
 		if (! is_file ( APP_CONFIG_PATH ))
-			exit ( 'config file ' . APP_CONFIG_PATH . 'not found' );
+			exit ( 'config file ' . APP_CONFIG_PATH . ' not found' );
 		include APP_CONFIG_PATH;
 		$this->appConfig = new DataMap ( $config );
 		spl_autoload_register ( array (
@@ -209,19 +209,19 @@ class Application {
 		$this->callController ( $cname, $aname );
 	}
 	public function callController($cname, $aname) {
-		if (! preg_match ( '/^([a-z_][a-z0-9_]{0,18}\\/){0,5}[a-z_][a-z0-9_]{0,18}$/', $cname )) {
+		if (! preg_match ( '/^([a-zA-Z_][a-zA-Z0-9_]{0,18}\\/){0,5}[a-zA-Z_][a-zA-Z0-9_]{0,18}$/', $cname )) {
 			$this->errHandler->handle ( 1003, '控制器名非法' );
 		}
 		$controllerCls = $this->getCclass ( $cname );
 		if (! class_exists ( $controllerCls )) {
-			$cname = $this->appConfig->get ( '404c' );
+			$cname = $this->appConfig->get ( '404C' );
 			$c404Cls = $this->getCclass ( $cname );
 			if (! class_exists ( $c404Cls ))
-				$this->errHandler->handle ( 1004, '找不到处理404错误的控制器' );
+				$this->errHandler->handle ( 1004, '找不到处理404错误的控制器');
 			else
 				$this->callCclass ( $c404Cls, $aname );
 		} else
-			$this->callCclass ( $controllerCls, $aname );
+			$this->callCclass ( $controllerCls, $aname);
 	}
 	/**
 	 * 调用控制器类
@@ -234,13 +234,14 @@ class Application {
 	 */
 	private function callCclass($cclass, $aname) {
 		$cObj = new $cclass ();
+		$methodName=$aname.'Action';
 		$methods = get_class_methods ( $cObj );
-		if (! in_array ( $aname, $methods )) {
+		if (! in_array ( $methodName, $methods )) {
 			$this->errHandler->handle ( 1004, '当前控制器没有' . $aname . '操作名' );
 		}
 		call_user_func ( array (
 				$cObj,
-				$aname 
+				$methodName 
 		) );
 	}
 	/**

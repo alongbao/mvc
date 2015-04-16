@@ -9,11 +9,18 @@ namespace liuguang\mvc;
  */
 interface UrlHandler {
 	/**
-	 * 获取URL中的变量映射对象
+	 * 获取当前URL中的变量映射对象
 	 * 
 	 * @return DataMap url变量映射
 	 */
 	public function getUrlData();
+	/**
+	 * 获取指定URL中的变量映射对象
+	 * 
+	 * @param string $url;
+	 * @return DataMap url变量映射
+	 */
+	public function parseUrl($url);
 	/**
 	 * 获取控制器名称,url中未指定时,返回默认控制器名
 	 * 

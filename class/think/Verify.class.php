@@ -87,11 +87,11 @@ class Verify {
 	public function __isset($name) {
 		return isset ( $this->config [$name] );
 	}
-	public function createCodeStr($length) {
+	public function createCodeStr($length=5) {
 		$codeStr = '';
 		$codeSetLength = strlen ( $this->codeSet );
 		for($i = 0; $i < $length; $i ++) {
-			$codeStr .= substr (  $this->codeStr, rand ( 0, $codeSetLength - 1 ),1 );
+			$codeStr .= substr (  $this->codeSet, rand ( 0, $codeSetLength - 1 ),1 );
 		}
 		$this->length = $length;
 		$this->codeStr = $codeStr;

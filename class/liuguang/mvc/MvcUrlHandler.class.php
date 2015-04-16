@@ -27,6 +27,26 @@ class MvcUrlHandler implements UrlHandler {
 		return $this->urlData;
 	}
 	
+	/* !CodeTemplates.overridecomment.nonjd!
+	 * @see \liuguang\mvc\UrlHandler::parseUrl()
+	 */
+	public function parseUrl($url) {
+		$data=array();
+		$urlData=new DataMap($data);
+		$query=parse_url($url,PHP_URL_QUERY);
+		if($query!==null){
+			parse_str($query,$tmp);
+			foreach ($tmp as $key=>$value){
+				$urlData->set($key, $value);
+			}
+		}
+		if($urlData->get($this->cKey,'')=='')
+			$urlData->set($this->cKey,$this->defaultC);
+		if($urlData->get($this->aKey,'')=='')
+			$urlData->set($this->aKey,$this->defaultA);
+		return $urlData;
+	}
+
 	/*
 	 * !CodeTemplates.overridecomment.nonjd! @see \liuguang\mvc\UrlHandler::getCname()
 	 */
