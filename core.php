@@ -41,7 +41,8 @@ class Classloader {
 		$this->mvcExtRoute = array (
 				'PHPMailer' => 'class.phpmailer.php',
 				'SMTP' => 'class.smtp.php',
-				'PclZip'=>'pclzip.lib.php'
+				'PclZip'=>'pclzip.lib.php',
+				'HTMLPurifierLoader'=>'HTMLPurifier/HTMLPurifierLoader.php'
 		);
 		$this->appExtRoute = $config->get ( 'extClass', array () );
 	}

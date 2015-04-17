@@ -17,7 +17,7 @@ class FileBucket {
 			if(!isset($fslist[$fsId]))
 				throw new FsException('fsId '.$fsId.' not found !');
 			$fsConf=$fslist[$fsId];
-			$fsClass=__NAMESPACE__.'\\fs\\'.$fsConf['type'].'Driver.class.php';
+			$fsClass=__NAMESPACE__.'\\fs\\'.$fsConf['type'].'Driver';
 			$fsObject=new $fsClass($fsConf['config']);
 			if(!($fsObject instanceof FsInter)){
 				throw new FsException('bad fs driver');

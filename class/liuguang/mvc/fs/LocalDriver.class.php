@@ -18,7 +18,7 @@ class LocalDriver implements FsInter {
 	public function __construct(array $config) {
 		$bucketName = $config ['bucketName'];
 		$appContext = substr ( $_SERVER ['SCRIPT_NAME'], 0, - strlen ( MVC_ENTRY_NAME ) );
-		$this->fsContext = $appContext . $bucketName;
+		$this->fsContext = $appContext .'fs/'. $bucketName;
 		if (DIRECTORY_SEPARATOR == '/')
 			$this->fsBasepath = APP_PATH . DIRECTORY_SEPARATOR . 'fs' . DIRECTORY_SEPARATOR . $bucketName;
 		else
