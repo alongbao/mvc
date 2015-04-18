@@ -328,7 +328,7 @@ class HTMLPurifier_Config
             $this->aliasMode = true;
             $this->set($def->key, $value);
             $this->aliasMode = false;
-            $this->triggerError("$key is an alias, preferred directive name is {$def->key}", E_USER_NOTICE);
+            //$this->triggerError("$key is an alias, preferred directive name is {$def->key}", E_USER_NOTICE);
             return;
         }
 
