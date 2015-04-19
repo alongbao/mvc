@@ -17,8 +17,8 @@ class SaeDriver implements FsInter {
 	private $domain;
 	private $storageObj;
 	public function __construct(array $config) {
-		$accessKey = getenv ( 'HTTP_ACCESSKEY' );
-		$secretKey = getenv ( 'HTTP_SECRETKEY' );
+		$accessKey = SAE_ACCESSKEY;
+		$secretKey = SAE_SECRETKEY;
 		$this->domain = $config ['domain'];
 		$this->storageObj = new \SaeStorage ( $accessKey, $secretKey );
 	}
@@ -58,7 +58,7 @@ class SaeDriver implements FsInter {
 		$mimeType = $this->getMimeType ( $objectName );
 		if ($this->storageObj->upload ( $this->domain, $objectName, $upfile ['tmp_name'], array (
 				'type' => $mimeType 
-		) )===false)
+		) ) === false)
 			throw new FsException ( 'storage file ' . $objectName . ' failed ' . $this->storageObj->errmsg () );
 	}
 	
@@ -67,9 +67,9 @@ class SaeDriver implements FsInter {
 	 */
 	public function write($objectName, $data) {
 		$mimeType = $this->getMimeType ( $objectName );
-		if ($this->storageObj->write ( $this->domain, $objectName, $data,-1, array (
+		if ($this->storageObj->write ( $this->domain, $objectName, $data, - 1, array (
 				'type' => $mimeType 
-		)===false ))
+		) === false ))
 			throw new FsException ( 'write file ' . $objectName . ' failed ' . $this->storageObj->errmsg () );
 	}
 	
@@ -77,8 +77,8 @@ class SaeDriver implements FsInter {
 	 * !CodeTemplates.overridecomment.nonjd! @see \liuguang\mvc\FsInter::read()
 	 */
 	public function read($objectName) {
-		$data=$this->storageObj->read($this->domain,$objectName);
-		if($data===false)
+		$data = $this->storageObj->read ( $this->domain, $objectName );
+		if ($data === false)
 			throw new FsException ( 'read file ' . $objectName . ' failed ' . $this->storageObj->errmsg () );
 		return $data;
 	}
@@ -87,9 +87,9 @@ class SaeDriver implements FsInter {
 	 * !CodeTemplates.overridecomment.nonjd! @see \liuguang\mvc\FsInter::delete()
 	 */
 	public function delete($objectName) {
-		if(!$this->storageObj->delete($this->domain,$objectName))
+		if (! $this->storageObj->delete ( $this->domain, $objectName ))
 			throw new FsException ( 'delete file ' . $objectName . ' failed ' . $this->storageObj->errmsg () );
-		}
+	}
 	
 	/*
 	 * !CodeTemplates.overridecomment.nonjd! @see \liuguang\mvc\FsInter::canGetUrl()
@@ -102,7 +102,7 @@ class SaeDriver implements FsInter {
 	 * !CodeTemplates.overridecomment.nonjd! @see \liuguang\mvc\FsInter::getUrl()
 	 */
 	public function getUrl($objectName) {
-		return $this->storageObj->getUrl($this->domain,$objectName);
+		return $this->storageObj->getUrl ( $this->domain, $objectName );
 	}
 	
 	/*

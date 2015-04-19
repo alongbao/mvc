@@ -68,7 +68,7 @@ class MvcUrlHandler implements UrlHandler {
 		$appContext=substr($_SERVER['SCRIPT_NAME'], 0,-strlen(MVC_ENTRY_NAME));
 		$url=$appContext.'?'.$this->cKey.'='.urlencode($cname).'&'.$this->aKey.'='.$aname;
 		foreach ($data as $key=>$value){
-			$url.=('&'.$key.'='.$value);
+			$url.=('&'.$key.'='.urlencode($value));
 		}
 		if($xmlSafe)
 			$url=str_replace('&', '&amp;', $url);
