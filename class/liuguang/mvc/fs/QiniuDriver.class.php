@@ -67,11 +67,43 @@ class QiniuDriver implements FsInter {
 		$mimeType = 'application/octet-stream';
 		if ($obj_type !== false) {
 			$mimeArr = array (
-					'.png' => 'image/png',
 					'.jpg' => 'image/jpeg',
 					'.jpeg' => 'image/jpeg',
 					'.gif' => 'image/gif',
-					'.bmp' => 'image/bmp' 
+					'.png' => '.image/png',
+					'.ico' => 'image/x-icon',
+					'.pdf' => 'application/pdf',
+					'.tif' => 'image/tiff',
+					'.tiff' => 'image/tiff',
+					'.svg' => 'image/svg+xml',
+					'.svgz' => 'image/svg+xml',
+					'.swf' => 'application/x-shockwave-flash',
+					'.zip' => 'application/zip',
+					'.gz' => 'application/x-gzip',
+					'.tar' => 'application/x-tar',
+					'.bz' => 'application/x-bzip',
+					'.bz2' => 'application/x-bzip2',
+					'.rar' => 'application/x-rar-compressed',
+					'.exe' => 'application/x-msdownload',
+					'.msi' => 'application/x-msdownload',
+					'.cab' => 'application/vnd.ms-cab-compressed',
+					'.txt' => 'text/plain',
+					'.asc' => 'text/plain',
+					'.htm' => 'text/html',
+					'.html' => 'text/html',
+					'.css' => 'text/css',
+					'.js' => 'text/javascript',
+					'.xml' => 'text/xml',
+					'.xsl' => 'application/xsl+xml',
+					'.ogg' => 'application/ogg',
+					'.mp3' => 'audio/mpeg',
+					'.wav' => 'audio/x-wav',
+					'.avi' => 'video/x-msvideo',
+					'.mpg' => 'video/mpeg',
+					'.mpeg' => 'video/mpeg',
+					'.mov' => 'video/quicktime',
+					'.flv' => 'video/x-flv',
+					'.php' => 'text/x-php' 
 			);
 			if (array_key_exists ( $obj_type, $mimeArr )) {
 				$mimeType = $mimeArr [$obj_type];
@@ -128,7 +160,7 @@ class QiniuDriver implements FsInter {
 		$mimeType = $this->getMimeType ( $objectName );
 		$postData = array (
 				'token' => $this->getUploadToken ( $objectName ),
-				'key' => $objectName
+				'key' => $objectName 
 		);
 		if (! function_exists ( 'curl_file_create' )) {
 			$postData ['file'] = '@' . $upfile ['tmp_name'] . ';filename=' . basename ( $objectName ) . ';type=' . $mimeType;
@@ -141,10 +173,13 @@ class QiniuDriver implements FsInter {
 	}
 	/**
 	 * 组装上传信息
-	 * 
-	 * @param string $objectName 文件对象名
-	 * @param string $rbData 文件数据
-	 * @param string $frontier 间隔符
+	 *
+	 * @param string $objectName
+	 *        	文件对象名
+	 * @param string $rbData
+	 *        	文件数据
+	 * @param string $frontier
+	 *        	间隔符
 	 * @return string
 	 */
 	private function getRbPostData($objectName, $rbData, $frontier) {
@@ -169,7 +204,11 @@ class QiniuDriver implements FsInter {
 	public function write($objectName, $data) {
 		$frontier = 'liuguang' . time ();
 		$postData = $this->getRbPostData ( $objectName, $data, $frontier );
-		$resp = $this->doPost ( $this->uploadHost, $postData );
+		$dataLength = strlen ( $postData );
+		$resp = $this->doPost ( $this->uploadHost, $postData, array (
+				'Content-Type:   multipart/form-data; boundary=' . $frontier ,
+				'Content-Length: '.$dataLength
+		) );
 		$resp_code = $resp ['http_code'];
 		if ($resp_code != 200)
 			throw new FsException ( $this->getUploadErr ( $resp_code ) );
@@ -177,16 +216,16 @@ class QiniuDriver implements FsInter {
 	private function safeBase64($data) {
 		return str_replace ( array (
 				'+',
-				'/'
+				'/' 
 		), array (
 				'-',
-				'_'
+				'_' 
 		), base64_encode ( $data ) );
 	}
 	private function getUploadToken($objectName) {
 		$sPolicy = array (
 				'scope' => $this->bucketName . ':' . $objectName,
-				'deadline' => (time () + 1200)
+				'deadline' => (time () + 1200) 
 		);
 		$encodedPutPolicy = $this->safeBase64 ( json_encode ( $sPolicy ) );
 		$sign = hash_hmac ( 'sha1', $encodedPutPolicy, $this->secretKey, true );
@@ -208,7 +247,7 @@ class QiniuDriver implements FsInter {
 		$url = $this->getUrl ( $objectName ) . '?e=' . (time () + 1800);
 		$encodedSign = $this->getAuthorization ( $url );
 		$url .= ('&token=' . $encodedSign);
-		return file_get_contents($url);
+		return file_get_contents ( $url );
 	}
 	
 	/*
@@ -225,7 +264,8 @@ class QiniuDriver implements FsInter {
 		$resp = $this->doPost ( $url, array (), $userHead );
 		$resp_code = $resp ['http_code'];
 		if ($resp_code != 200)
-			throw new FsException ( $this->getDeleteErr ( $resp_code ) );}
+			throw new FsException ( $this->getDeleteErr ( $resp_code ) );
+	}
 	
 	/*
 	 * !CodeTemplates.overridecomment.nonjd! @see \liuguang\mvc\FsInter::canGetUrl()
@@ -238,7 +278,7 @@ class QiniuDriver implements FsInter {
 	 * !CodeTemplates.overridecomment.nonjd! @see \liuguang\mvc\FsInter::getUrl()
 	 */
 	public function getUrl($objectName) {
-		return 'http://' . $this->urlHost . $objectName;
+		return 'http://' . $this->urlHost . '/' . $objectName;
 	}
 	
 	/*
