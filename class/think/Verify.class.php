@@ -11,6 +11,8 @@
 // 本代码由流光根据需要进行了一些修改和删减
 namespace think;
 
+use liuguang\mvc\Application;
+
 class Verify {
 	protected $config = array (
 			'seKey' => 'ThinkPHP.CN', // 验证码加密密钥
@@ -39,18 +41,21 @@ class Verify {
 	
 	/**
 	 * 架构方法 设置参数
-	 * 
+	 *
 	 * @access public
 	 * @param array $config
 	 *        	配置参数
 	 */
 	public function __construct($config = array()) {
 		$this->config = array_merge ( $this->config, $config );
+		$app = Application::getApp ();
+		$appConfig = $app->getAppConfig ();
+		$this->config ['fontttf'] = $appConfig->get ( 'mvc_static_path' ) . DIRECTORY_SEPARATOR . 'fonts' . DIRECTORY_SEPARATOR . 'rcode.ttf';
 	}
 	
 	/**
 	 * 使用 $this->name 获取配置
-	 * 
+	 *
 	 * @access public
 	 * @param string $name
 	 *        	配置名称
@@ -62,7 +67,7 @@ class Verify {
 	
 	/**
 	 * 设置验证码配置
-	 * 
+	 *
 	 * @access public
 	 * @param string $name
 	 *        	配置名称
@@ -78,7 +83,7 @@ class Verify {
 	
 	/**
 	 * 检查配置
-	 * 
+	 *
 	 * @access public
 	 * @param string $name
 	 *        	配置名称
@@ -87,11 +92,11 @@ class Verify {
 	public function __isset($name) {
 		return isset ( $this->config [$name] );
 	}
-	public function createCodeStr($length=5) {
+	public function createCodeStr($length = 5) {
 		$codeStr = '';
 		$codeSetLength = strlen ( $this->codeSet );
 		for($i = 0; $i < $length; $i ++) {
-			$codeStr .= substr (  $this->codeSet, rand ( 0, $codeSetLength - 1 ),1 );
+			$codeStr .= substr ( $this->codeSet, rand ( 0, $codeSetLength - 1 ), 1 );
 		}
 		$this->length = $length;
 		$this->codeStr = $codeStr;
@@ -115,9 +120,6 @@ class Verify {
 		
 		// 验证码字体随机颜色
 		$this->_color = imagecolorallocate ( $this->_image, mt_rand ( 1, 150 ), mt_rand ( 1, 150 ), mt_rand ( 1, 150 ) );
-		// 验证码字体
-		$this->fontttf = MVC_PATH . DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR . 'fonts' . DIRECTORY_SEPARATOR . 'rcode.ttf';
-		
 		if ($this->useImgBg) {
 			$this->_background ();
 		}
@@ -133,11 +135,11 @@ class Verify {
 		
 		// 绘验证码
 		for($i = 0; $i < $this->length; $i ++) {
-			$codeNode=substr($this->codeStr,$i,1);
+			$codeNode = substr ( $this->codeStr, $i, 1 );
 			$codeNX += mt_rand ( $this->fontSize * 1.2, $this->fontSize * 1.6 );
 			imagettftext ( $this->_image, $this->fontSize, mt_rand ( - 40, 40 ), $codeNX, $this->fontSize * 1.6, $this->_color, $this->fontttf, $codeNode );
 		}
-		//http头
+		// http头
 		header ( 'Cache-Control: private, max-age=0, no-store, no-cache, must-revalidate' );
 		header ( 'Cache-Control: post-check=0, pre-check=0', false );
 		header ( 'Pragma: no-cache' );

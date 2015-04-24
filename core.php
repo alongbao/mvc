@@ -9,19 +9,8 @@ namespace liuguang\mvc;
 /* 项目文件夹所在绝对路径 */
 if (! defined ( 'APP_PATH' ))
 	exit ( 'need APP_PATH' );
-	/* 框架路径，项目入口文件名，项目类库路径，项目第三方类库路径，项目配置文件路径 */
-define ( 'MVC_PATH', __DIR__ );
-if (! defined ( 'MVC_ENTRY_NAME' ))
-	define ( 'MVC_ENTRY_NAME', 'index.php' );
-if (! defined ( 'APP_CONFIG_PATH' ))
-	define ( 'APP_CONFIG_PATH', APP_PATH . DIRECTORY_SEPARATOR . 'config.inc.php' );
-if (! defined ( 'APP_CLASS_PATH' ))
-	define ( 'APP_CLASS_PATH', APP_PATH . DIRECTORY_SEPARATOR . 'class' );
-if (! defined ( 'APP_EXTCLASS_PATH' ))
-	define ( 'APP_EXTCLASS_PATH', APP_PATH . DIRECTORY_SEPARATOR . 'extclass' );
 	// 加载基础类
-include MVC_PATH . DIRECTORY_SEPARATOR . 'class' . DIRECTORY_SEPARATOR . 'liuguang' . DIRECTORY_SEPARATOR . 'mvc' . DIRECTORY_SEPARATOR . 'DataMap.class.php';
-include MVC_PATH . DIRECTORY_SEPARATOR . 'class' . DIRECTORY_SEPARATOR . 'liuguang' . DIRECTORY_SEPARATOR . 'mvc' . DIRECTORY_SEPARATOR . 'ErrHandler.class.php';
+include __DIR__. DIRECTORY_SEPARATOR . 'class' . DIRECTORY_SEPARATOR . 'liuguang' . DIRECTORY_SEPARATOR . 'mvc' . DIRECTORY_SEPARATOR . 'DataMap.class.php';
 /**
  * 框架的类库加载机制
  *
@@ -29,6 +18,10 @@ include MVC_PATH . DIRECTORY_SEPARATOR . 'class' . DIRECTORY_SEPARATOR . 'liugua
  *        
  */
 class Classloader {
+	private $mvcClasspath;
+	private $appClasspath;
+	private $mvcExtpath;
+	private $appExtpath;
 	private $mvcExtRoute;
 	private $appExtRoute;
 	/**
@@ -38,13 +31,14 @@ class Classloader {
 	 *        	配置对象
 	 */
 	public function __construct(DataMap $config) {
-		$this->mvcExtRoute = array (
-				'PHPMailer' => 'class.phpmailer.php',
-				'SMTP' => 'class.smtp.php',
-				'PclZip'=>'pclzip.lib.php',
-				'HTMLPurifierLoader'=>'HTMLPurifier/HTMLPurifierLoader.php'
-		);
-		$this->appExtRoute = $config->get ( 'extClass', array () );
+		$this->mvcClasspath=$config->get('mvc_class_path');
+		$this->appClasspath=$config->get('app_class_path');
+
+		$this->mvcExtpath=$config->get('mvc_ext_path');
+		$this->appExtpath=$config->get('app_ext_path');
+
+		$this->mvcExtRoute=$config->get('mvc_ext_route');
+		$this->appExtRoute=$config->get('app_ext_route');
 	}
 	/**
 	 * 加载类库
@@ -90,9 +84,9 @@ class Classloader {
 	 */
 	private function getExtpath($pathname, $inMvc) {
 		if ($inMvc)
-			$basepath = MVC_PATH . DIRECTORY_SEPARATOR . 'extclass';
+			$basepath = $this->mvcExtpath;
 		else
-			$basepath = APP_EXTCLASS_PATH;
+			$basepath = $this->appExtpath;
 		if (DIRECTORY_SEPARATOR != '/')
 			$pathname = str_replace ( '/', DIRECTORY_SEPARATOR, $pathname );
 		return $basepath . DIRECTORY_SEPARATOR . $pathname;
@@ -108,9 +102,9 @@ class Classloader {
 	 */
 	private function getCpath($classname, $inMvc) {
 		if ($inMvc)
-			$basepath = MVC_PATH . DIRECTORY_SEPARATOR . 'class';
+			$basepath = $this->mvcClasspath;
 		else
-			$basepath = APP_CLASS_PATH;
+			$basepath = $this->appClasspath;
 		if (DIRECTORY_SEPARATOR != '\\')
 			$classname = str_replace ( '\\', DIRECTORY_SEPARATOR, $classname );
 		return $basepath . DIRECTORY_SEPARATOR . $classname . '.class.php';
@@ -121,16 +115,62 @@ class Application {
 	private $appConfig;
 	private $errHandler;
 	private $urlHandler;
-	private function __construct() {
-		$config = array ();
-		if (! is_file ( APP_CONFIG_PATH ))
-			exit ( 'config file ' . APP_CONFIG_PATH . ' not found' );
-		include APP_CONFIG_PATH;
-		$this->appConfig = new DataMap ( $config );
+	private function __construct(DataMap $config) {
+		$distConf=array_merge($this->getMvcConfig(),$config->toArray());
+		$this->appConfig = new DataMap($distConf);
 		spl_autoload_register ( array (
 				new Classloader ( $this->appConfig ),
 				'loadClass' 
 		) );
+	}
+	/**
+	 * 框架的默认配置
+	 * 
+	 * @return array
+	 */
+	private function getMvcConfig(){
+		$config=array();
+		$p1=strripos($_SERVER['SCRIPT_NAME'],'/');
+		//项目的http路径和入口文件名
+		if($p1===0){
+			$config['app_context']='';
+			$config['app_entry']=substr($_SERVER['SCRIPT_NAME'],1);
+		}
+		else{
+			$config['app_context']=substr($_SERVER['SCRIPT_NAME'],0,$p1);
+			$config['app_entry']=substr($_SERVER['SCRIPT_NAME'],$p1+1);
+		}
+		//项目公共目录的路径
+		$config['app_pub_context']=$config['app_context'].'/public';
+		$config['app_pub_path']=APP_PATH.DIRECTORY_SEPARATOR.'public';
+		//框架静态文件路径
+		$config['mvc_static_path']=__DIR__.DIRECTORY_SEPARATOR.'static';
+		//类库路径、第三方类库路径
+		$config['mvc_class_path']=__DIR__.DIRECTORY_SEPARATOR.'class';
+		$config['mvc_ext_path']=__DIR__.DIRECTORY_SEPARATOR.'extclass';
+		$config['app_class_path']=APP_PATH.DIRECTORY_SEPARATOR.'class';
+		$config['app_ext_path']=APP_PATH.DIRECTORY_SEPARATOR.'extclass';
+		//第三方类库路径映射
+		$config['mvc_ext_route']=array (
+				'PHPMailer' => 'class.phpmailer.php',
+				'SMTP' => 'class.smtp.php',
+				'PclZip' => 'pclzip.lib.php',
+				'HTMLPurifierLoader' => 'HTMLPurifier/HTMLPurifierLoader.php'
+		);
+		$config['app_ext_route']=array();
+		//默认的错误处理器和url处理器
+		$config ['errHandler'] = 'liuguang\\mvc\\MvcErrHandler';
+		$config['urlHandler'] = 'liuguang\\mvc\\MvcUrlHandler';
+		$config ['dblist'] = array();
+		$config ['fslist'] = array();
+		//控制器url等默认配置
+		$config ['controllerNs'] = 'app';
+		$config ['cKey'] = 'c';
+		$config ['aKey'] = 'a';
+		$config ['defaultC'] = 'Index';
+		$config ['defaultA'] = 'index';
+		$config ['404C'] = 'Err404';
+		return $config;
 	}
 	/**
 	 * 项目启动器
@@ -138,11 +178,42 @@ class Application {
 	 * @return void
 	 */
 	public static function init() {
-		if (self::$app == null) {
-			$app = new self ();
-			self::$app = $app;
-			$app->startApp ();
-		}
+		if (self::$app !== null)
+			return;
+		if(defined('APP_CONFIG_PATH'))
+			self::initFromFile(APP_CONFIG_PATH);
+		else 
+			self::initFromFile(APP_PATH.DIRECTORY_SEPARATOR.'config.inc.php');
+	}
+	/**
+	 * 从一个配置文件启动项目
+	 *
+	 * @param string $configFile
+	 *        	配置文件路径
+	 * @return void
+	 */
+	public static function initFromFile($configFile) {
+		if (self::$app !== null)
+			return;
+		$config = array ();
+		if (!is_file ( $configFile ))
+			exit('Config file '.$configFile.' not found !');
+		include $configFile;
+		self::initFormConfig ( new DataMap ( $config ) );
+	}
+	/**
+	 * 从一个配置对象启动项目
+	 *
+	 * @param DataMap $config
+	 *        	配置对象
+	 * @return void
+	 */
+	public static function initFormConfig(DataMap $config) {
+		if (self::$app !== null)
+			return;
+		$app = new self ( $config );
+		self::$app = $app;
+		$app->startApp ();
 	}
 	/**
 	 * 获取当前项目实例
@@ -218,11 +289,11 @@ class Application {
 			$cname = $this->appConfig->get ( '404C' );
 			$c404Cls = $this->getCclass ( $cname );
 			if (! class_exists ( $c404Cls ))
-				$this->errHandler->handle ( 1004, '找不到处理404错误的控制器');
+				$this->errHandler->handle ( 1004, '找不到处理404错误的控制器' );
 			else
 				$this->callCclass ( $c404Cls, $aname );
 		} else
-			$this->callCclass ( $controllerCls, $aname);
+			$this->callCclass ( $controllerCls, $aname );
 	}
 	/**
 	 * 调用控制器类
@@ -235,7 +306,7 @@ class Application {
 	 */
 	private function callCclass($cclass, $aname) {
 		$cObj = new $cclass ();
-		$methodName=$aname.'Action';
+		$methodName = $aname . 'Action';
 		$methods = get_class_methods ( $cObj );
 		if (! in_array ( $methodName, $methods )) {
 			$this->errHandler->handle ( 1004, '当前控制器没有' . $aname . '操作名' );

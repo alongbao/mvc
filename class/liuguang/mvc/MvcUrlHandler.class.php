@@ -13,12 +13,16 @@ class MvcUrlHandler implements UrlHandler {
 	private $defaultC;
 	private $defaultA;
 	private $urlData;
+	private $appContext;
+	private $appEntry;
 	public function __construct(DataMap $config) {
 		$this->cKey=$config->get('cKey');
 		$this->aKey=$config->get('aKey');
 		$this->defaultC=$config->get('defaultC');
 		$this->defaultA=$config->get('defaultA');
 		$this->urlData=new DataMap($_GET);
+		$this->appContext=$config->get('app_context');
+		$this->appEntry=$config->get('app_entry');
 	}
 	/*
 	 * !CodeTemplates.overridecomment.nonjd! @see \liuguang\mvc\UrlHandler::getUrlData()
@@ -65,8 +69,10 @@ class MvcUrlHandler implements UrlHandler {
 	 * !CodeTemplates.overridecomment.nonjd! @see \liuguang\mvc\UrlHandler::createUrl()
 	 */
 	public function createUrl($cname, $aname, array $data,$xmlSafe=true) {
-		$appContext=substr($_SERVER['SCRIPT_NAME'], 0,-strlen(MVC_ENTRY_NAME));
-		$url=$appContext.'?'.$this->cKey.'='.urlencode($cname).'&'.$this->aKey.'='.$aname;
+		$url_head=$this->appContext.'/';
+		if($this->appEntry!='index.php')
+			$url_head.=$this->appEntry;
+		$url=$url_head.'?'.$this->cKey.'='.urlencode($cname).'&'.$this->aKey.'='.$aname;
 		foreach ($data as $key=>$value){
 			$url.=('&'.$key.'='.urlencode($value));
 		}
