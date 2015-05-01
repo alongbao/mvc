@@ -4,7 +4,7 @@ namespace liuguang\mvc;
 
 /**
  *
- * @author ac er
+ * @author liuguang
  *        
  */
 interface UrlHandler {

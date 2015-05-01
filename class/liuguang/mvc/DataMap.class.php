@@ -9,12 +9,14 @@ namespace liuguang\mvc;
  */
 class DataMap {
 	private $data;
+	private $change;
 	/**
 	 * 
 	 * @param array $data 引用传入一个数组变量
 	 */
 	public function __construct(array &$data){
 		$this->data=&$data;
+		$this->change=false;
 	}
 	/**
 	 * 通过key读取值
@@ -38,6 +40,7 @@ class DataMap {
 	 */
 	public function set($key,$value){
 		$this->data[$key]=$value;
+		$this->change=true;
 	}
 	/**
 	 * 删除key映射
@@ -47,6 +50,7 @@ class DataMap {
 	 */
 	public function delete($key){
 		unset($this->data[$key]);
+		$this->change=true;
 	}
 	/**
 	 * 判断映射中是否含有指定的键名
@@ -65,6 +69,9 @@ class DataMap {
 	 */
 	public function containsValue($value){
 		return in_array($value, $this->data);
+	}
+	public function hasChanged(){
+		return $this->change;
 	}
 	/**
 	 * 导出数组
