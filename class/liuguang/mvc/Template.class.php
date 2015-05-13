@@ -120,4 +120,15 @@ class Template {
 				echo gzencode ( ob_get_clean (), 9 );
 		}
 	}
+	/**
+	 * 获取渲染后的内容但是不输出
+	 * 
+	 * @return string
+	 */
+	public function getDisplayData(){
+	    ob_start ();
+	    $tplData = $this->getTplData ();
+	    include $this->tplPath;
+	    return ob_get_clean ();
+	}
 }
