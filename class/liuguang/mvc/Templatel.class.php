@@ -26,6 +26,7 @@ class Templatel {
 			return '';
 		}
 		$tplContent = file_get_contents ( $tplPath );
+		$paramRexp='[a-zA-Z_\\x7f-\\xff][a-zA-Z0-9_\\x7f-\\xff]*';
 		// 将被嵌套模板内容解析为 PHP 语句并合并入本模板中的写法
 		// <!--{subtemplate /common/header.html}-->
 		// <!--{include /common/header.html}-->
@@ -98,7 +99,7 @@ class Templatel {
 		}
 		// 循环语法
 		// <!--{loop $my_arr $key $val}-->
-		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(.+?)\s+(.+?)\s+(.+?)\\}\\-\\-\\>/is';
+		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(\\$'.$paramRexp.')\s+(\\$'.$paramRexp.')\s+(\\$'.$paramRexp.')\\}\\-\\-\\>/is';
 		if (preg_match ( $rexp, $tplContent )) {
 			$tplContent = preg_replace_callback ( $rexp, array (
 					$this,
@@ -106,7 +107,7 @@ class Templatel {
 			), $tplContent );
 		}
 		// <!--{loop $my_arr $key}-->
-		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(.+?)\s+(.+?)\\}\\-\\-\\>/is';
+		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(\\$'.$paramRexp.')\s+(\\$'.$paramRexp.')\\}\\-\\-\\>/is';
 		if (preg_match ( $rexp, $tplContent )) {
 			$tplContent = preg_replace_callback ( $rexp, array (
 					$this,
