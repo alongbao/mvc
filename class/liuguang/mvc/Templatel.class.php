@@ -1,12 +1,16 @@
 <?php
+
 namespace liuguang\mvc;
+
 use Exception;
+
 class Templatel {
 	private $srcPath;
 	private $distPath;
+	private static $openCompress;
 	public function __construct() {
-		$this->srcPath = APP_PATH . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR.'src';
-		$this->distPath=APP_PATH . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR.'dist';
+		$this->srcPath = APP_PATH . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR . 'src';
+		$this->distPath = APP_PATH . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR . 'dist';
 	}
 	/**
 	 * 获取编译后的模板代码
@@ -158,11 +162,11 @@ class Templatel {
 	 *        	模板文件源路径
 	 * @return string
 	 */
-	protected function getTplRealpath($srcTplpath,$isSrcpath=true) {
-		if($isSrcpath)
-		$path = $this->srcPath;
-		else 
-			$path=$this->distPath;
+	protected function getTplRealpath($srcTplpath, $isSrcpath = true) {
+		if ($isSrcpath)
+			$path = $this->srcPath;
+		else
+			$path = $this->distPath;
 		if (DIRECTORY_SEPARATOR == '/')
 			return $path . $srcTplpath;
 		else
@@ -170,44 +174,106 @@ class Templatel {
 	}
 	/**
 	 * 获取处理后的模板文件路径
-	 * 
-	 * @param string $srcTplpath tpl文件如/path/new.tpl
+	 *
+	 * @param string $srcTplpath
+	 *        	tpl文件如/path/new.tpl
+	 * @param boolean $useCache
+	 *        	是否使用已存在的编译后的文件,默认为true
 	 * @throws Exception
 	 * @return string
 	 */
-	public static function includeTpl($srcTplpath) {
-		$tpl =new self();
+	public static function includeTpl($srcTplpath, $useCache = true) {
+		$tpl = new self ();
 		$tplPath = $tpl->getTplRealpath ( $srcTplpath );
 		if (! is_file ( $tplPath )) {
 			throw new Exception ( 'template[' . $srcTplpath . '] not found in ' . $tplPath );
 		}
-		$distPath=$tpl->getTplRealpath($srcTplpath,false);
-		$distPathDir=dirname($distPath);
-		if(!is_dir($distPathDir)){
-			if(!mkdir($distPathDir,0777,true))
-				throw new Exception ( 'failed to create dist dir '.$distPathDir.' for template[' . $srcTplpath . ']');
+		$distPath = $tpl->getTplRealpath ( $srcTplpath, false );
+		// 如果预处理后的文件存在,且指定使用缓存，则直接返回路径
+		if ($useCache && is_file ( $distPath ))
+			return $distPath;
+		$distPathDir = dirname ( $distPath );
+		if (! is_dir ( $distPathDir )) {
+			if (! mkdir ( $distPathDir, 0777, true ))
+				throw new Exception ( 'failed to create dist dir ' . $distPathDir . ' for template[' . $srcTplpath . ']' );
 		}
-		$content=$tpl->generate($srcTplpath);
-		$handle = @fopen($distPath, 'w');
-		if($handle===false)
-			throw new Exception ( 'failed to write data to '.$distPath.' for template[' . $srcTplpath . ']');
-		else{
-			fwrite($handle, $content);
-			fclose($handle);
+		$content = $tpl->generate ( $srcTplpath );
+		$handle = @fopen ( $distPath, 'w' );
+		if ($handle === false)
+			throw new Exception ( 'failed to write data to ' . $distPath . ' for template[' . $srcTplpath . ']' );
+		else {
+			fwrite ( $handle, $content );
+			fclose ( $handle );
 		}
 		return $distPath;
 	}
 	/**
 	 * 获取处理后的模板文件路径
-	 * 
-	 * @param string $srcTplpath tpl文件如/path/new.tpl
-	 * @param array $headers http头
+	 *
+	 * @param string $srcTplpath
+	 *        	tpl文件如/path/new.tpl
+	 * @param boolean $useCache
+	 *        	是否使用已存在的编译后的文件,默认为true
+	 * @param array $headers
+	 *        	http头
 	 * @return string
 	 */
-	public static function view($srcTplpath,$headers=array('Content-Type: text/html; charset=utf-8')){
-		foreach ($headers as $str){
-			header($str);
+	public static function view($srcTplpath, $useCache = true, $headers = array('Content-Type: text/html; charset=utf-8')) {
+		foreach ( $headers as $str ) {
+			header ( $str );
 		}
-		return self::includeTpl($srcTplpath);
+		return self::includeTpl ( $srcTplpath, $useCache );
+	}
+	/**
+	 * 设置是否开启压缩,如果浏览器和php都支持压缩功能
+	 *
+	 * @param boolean $isOpen        	
+	 */
+	public static function setCompress($isOpen) {
+		self::$openCompress = $isOpen;
+	}
+	/**
+	 * 获取压缩类型
+	 *
+	 * @return int 0表示不压缩,1表示gzip,2表示deflate
+	 */
+	public static function getCompressType() {
+		if (! self::$openCompress)
+			return 0;
+		if (! extension_loaded ( 'zlib' ))
+			return 0;
+			//
+		if (! isset ( $_SERVER ['HTTP_ACCEPT_ENCODING'] ))
+			return 0;
+		if (strpos ( $_SERVER ['HTTP_ACCEPT_ENCODING'], 'gzip' ) !== false)
+			return 2;
+		elseif (strpos ( $_SERVER ['HTTP_ACCEPT_ENCODING'], 'deflate' ) !== false)
+			return 1;
+		else
+			return 0;
+	}
+	public static function getCompressStr($compressType) {
+		if ($compressType == 1)
+			return 'deflate';
+		else
+			return 'gzip';
+	}
+	public static function tplStart() {
+		$compressType = self::getCompressType ();
+		if ($compressType > 0) {
+			ob_start ();
+			header ( 'Content-Encoding: ' . self::getCompressStr ( $compressType ) );
+		}
+	}
+	public static function tplEnd() {
+		$compressType = self::getCompressType ();
+		if ($compressType > 0) {
+			if ($compressType > 0) {
+				if ($compressType == 1)
+					echo gzdeflate ( ob_get_clean (), 9 );
+				else
+					echo gzencode ( ob_get_clean (), 9 );
+			}
+		}
 	}
 }
