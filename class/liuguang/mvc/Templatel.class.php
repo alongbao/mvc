@@ -9,8 +9,12 @@ class Templatel {
 	private $distPath;
 	private static $openCompress;
 	public function __construct() {
-		$this->srcPath = APP_PATH . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR . 'src';
-		$this->distPath = APP_PATH . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR . 'dist';
+		$app = Application::getApp ();
+		$appConfig = $app->getAppConfig ();
+		$tplBaspath = $appConfig->get ( 'tpl_path' );
+		$this->srcPath = $tplBaspath . DIRECTORY_SEPARATOR . 'src';
+		$this->distPath = $tplBaspath . DIRECTORY_SEPARATOR . 'dist';
+		date_default_timezone_set($appConfig->get('time_zone'));
 	}
 	/**
 	 * 获取编译后的模板代码
@@ -26,7 +30,7 @@ class Templatel {
 			return '';
 		}
 		$tplContent = file_get_contents ( $tplPath );
-		$paramRexp='[a-zA-Z_\\x7f-\\xff][a-zA-Z0-9_\\x7f-\\xff]*';
+		$paramRexp = '[a-zA-Z_\\x7f-\\xff][a-zA-Z0-9_\\x7f-\\xff]*';
 		// 将被嵌套模板内容解析为 PHP 语句并合并入本模板中的写法
 		// <!--{subtemplate /common/header.html}-->
 		// <!--{include /common/header.html}-->
@@ -99,7 +103,7 @@ class Templatel {
 		}
 		// 循环语法
 		// <!--{loop $my_arr $key $val}-->
-		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(\\S+)\s+(\\$'.$paramRexp.')\s+(\\$'.$paramRexp.')\\}\\-\\-\\>/is';
+		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(\\S+)\s+(\\$' . $paramRexp . ')\s+(\\$' . $paramRexp . ')\\}\\-\\-\\>/is';
 		if (preg_match ( $rexp, $tplContent )) {
 			$tplContent = preg_replace_callback ( $rexp, array (
 					$this,
@@ -107,13 +111,21 @@ class Templatel {
 			), $tplContent );
 		}
 		// <!--{loop $my_arr $key}-->
-		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(\\S+)\s+(\\$'.$paramRexp.')\\}\\-\\-\\>/is';
+		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(\\S+)\s+(\\$' . $paramRexp . ')\\}\\-\\-\\>/is';
 		if (preg_match ( $rexp, $tplContent )) {
 			$tplContent = preg_replace_callback ( $rexp, array (
 					$this,
 					'tagLoop1' 
 			), $tplContent );
 		}
+		//添加头部信息
+		$tplHeadr='<?php
+		if(!defined(\'IN_TEMPLATE_L\'))
+			exit(\'ACCESS DENIED\');
+		//Created in '.date('Y-m-d h:i:s').'
+		//Powered by liuguang
+		?>';
+		$tplContent=$tplHeadr.$tplContent;
 		// 清理php代码结构
 		$rexp = '/\\?\\>([\s\r\n\t]*)\\<\\?php/';
 		if (preg_match ( $rexp, $tplContent )) {
@@ -166,8 +178,10 @@ class Templatel {
 	protected function getTplRealpath($srcTplpath, $isSrcpath = true) {
 		if ($isSrcpath)
 			$path = $this->srcPath;
-		else
+		else{
 			$path = $this->distPath;
+			$srcTplpath.='.php';
+		}
 		if (DIRECTORY_SEPARATOR == '/')
 			return $path . $srcTplpath;
 		else
@@ -184,6 +198,8 @@ class Templatel {
 	 * @return string
 	 */
 	public static function includeTpl($srcTplpath, $useCache = true) {
+		if(!defined('IN_TEMPLATE_L'))
+			define('IN_TEMPLATE_L', true);
 		$tpl = new self ();
 		$tplPath = $tpl->getTplRealpath ( $srcTplpath );
 		if (! is_file ( $tplPath )) {

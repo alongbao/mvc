@@ -28,13 +28,14 @@ class Template {
 	 */
 	public function __construct($tplName, $mimeType = 'text/html; charset=utf-8') {
 		$app = Application::getApp ();
-		$this->tplBaspath= APP_PATH . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR;
-		$this->errHandler=$app->getErrHandler();
-		$this->setTplName($tplName);
+		$appConfig = $app->getAppConfig ();
+		$this->tplBaspath = $appConfig->get ( 'tpl_path' );
+		$this->errHandler = $app->getErrHandler ();
+		$this->setTplName ( $tplName );
 		$this->mimeType = $mimeType;
 		$this->openC = true;
 		$tplData = array (
-				'public_context' => $app->getAppConfig ()->get ( 'app_pub_context' ) 
+				'public_context' => $appConfig->get ( 'app_pub_context' ) 
 		);
 		$this->tplData = new DataMap ( $tplData );
 	}
@@ -49,26 +50,32 @@ class Template {
 		$this->openC = $open;
 	}
 	/**
-	 * @param !CodeTemplates.settercomment.paramtagcontent!
+	 * 在运行时重新定义模板文件基础路径
+	 *
+	 * @param string $tplBaspath
+	 * @return void
 	 */
 	public function setTplBaspath($tplBaspath) {
 		$this->tplBaspath = $tplBaspath;
 	}
-
+	
 	/**
-	 * @param !CodeTemplates.settercomment.paramtagcontent!
+	 * 设置模板文件
+	 * 
+	 * @param string $tplName 设置模板文件
+	 * @return void
 	 */
 	public function setTplName($tplName) {
 		if (DIRECTORY_SEPARATOR == '/')
-			$tplPath =$this->tplBaspath.$tplName . '.tpl.php';
+			$tplPath = $this->tplBaspath . $tplName . '.tpl.php';
 		else
-			$tplPath =$this->tplBaspath.str_replace ( '/', DIRECTORY_SEPARATOR, $tplName . '.tpl.php' );
+			$tplPath = $this->tplBaspath . str_replace ( '/', DIRECTORY_SEPARATOR, $tplName . '.tpl.php' );
 		if (! is_file ( $tplPath )) {
 			$this->errHandler->handle ( 404, 'tpl模板未找到' );
 		}
 		$this->tplPath = $tplPath;
 	}
-
+	
 	/**
 	 * 获取模板变量映射
 	 *
@@ -122,13 +129,13 @@ class Template {
 	}
 	/**
 	 * 获取渲染后的内容但是不输出
-	 * 
+	 *
 	 * @return string
 	 */
-	public function getDisplayData(){
-	    ob_start ();
-	    $tplData = $this->getTplData ();
-	    include $this->tplPath;
-	    return ob_get_clean ();
+	public function getDisplayData() {
+		ob_start ();
+		$tplData = $this->getTplData ();
+		include $this->tplPath;
+		return ob_get_clean ();
 	}
 }

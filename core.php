@@ -150,6 +150,10 @@ class Application {
 		$config['mvc_ext_path']=__DIR__.DIRECTORY_SEPARATOR.'extclass';
 		$config['app_class_path']=APP_PATH.DIRECTORY_SEPARATOR.'class';
 		$config['app_ext_path']=APP_PATH.DIRECTORY_SEPARATOR.'extclass';
+		//默认时区
+		$config['time_zone']='Asia/Chongqing';
+		//模板路径
+		$config['tpl_path']=APP_PATH.DIRECTORY_SEPARATOR.'tpl';
 		//第三方类库路径映射
 		$config['mvc_ext_route']=array (
 				'PHPMailer' => 'class.phpmailer.php',
