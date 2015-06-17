@@ -132,7 +132,7 @@ class Verify {
 			// 绘干扰线
 			$this->_writeCurve ();
 		}
-		
+		$codeNX='';
 		// 绘验证码
 		for($i = 0; $i < $this->length; $i ++) {
 			$codeNode = substr ( $this->codeStr, $i, 1 );
