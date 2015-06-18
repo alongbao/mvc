@@ -94,7 +94,7 @@ class Templatel {
 		}
 		// 直接输出php变量
 		// {$a[1][2]}
-		$rexp = '/\\{\\$(\\S+)\\}/is';
+		$rexp = '/\\{\\$(\\S+?)\\}/is';
 		if (preg_match ( $rexp, $tplContent )) {
 			$tplContent = preg_replace_callback ( $rexp, array (
 					$this,
@@ -103,7 +103,7 @@ class Templatel {
 		}
 		// 循环语法
 		// <!--{loop $my_arr $key $val}-->
-		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(\\S+)\s+(\\$' . $paramRexp . ')\s+(\\$' . $paramRexp . ')\\}\\-\\-\\>/is';
+		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(\\S+?)\s+(\\$' . $paramRexp . ')\s+(\\$' . $paramRexp . ')\\}\\-\\-\\>/is';
 		if (preg_match ( $rexp, $tplContent )) {
 			$tplContent = preg_replace_callback ( $rexp, array (
 					$this,
@@ -111,7 +111,7 @@ class Templatel {
 			), $tplContent );
 		}
 		// <!--{loop $my_arr $key}-->
-		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(\\S+)\s+(\\$' . $paramRexp . ')\\}\\-\\-\\>/is';
+		$rexp = '/\\<\\!\\-\\-\\{loop\\s+(\\S+?)\s+(\\$' . $paramRexp . ')\\}\\-\\-\\>/is';
 		if (preg_match ( $rexp, $tplContent )) {
 			$tplContent = preg_replace_callback ( $rexp, array (
 					$this,
