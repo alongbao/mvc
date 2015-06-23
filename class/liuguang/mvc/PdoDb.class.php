@@ -24,7 +24,7 @@ class PdoDb {
 			$app = Application::getApp ();
 			$dblist = $app->getAppConfig ()->get ( 'dblist', array () );
 			if (! isset ( $dblist [$dbId] ))
-				throw new \PDOException ( 'dbId ' . $dbId . ' not foound !' );
+				throw new \PDOException ( 'dbId ' . $dbId . ' not found !' );
 			$dbConf = $dblist [$dbId];
 			self::$conns [$dbId] = new \PDO ( $dbConf ['dsn'], $dbConf ['username'], $dbConf ['password'], $dbConf ['options'] );
 		}
