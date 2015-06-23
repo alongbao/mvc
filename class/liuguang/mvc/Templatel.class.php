@@ -206,6 +206,9 @@ class Templatel {
 			throw new Exception ( 'template[' . $srcTplpath . '] not found in ' . $tplPath );
 		}
 		$distPath = $tpl->getTplRealpath ( $srcTplpath, false );
+		//
+		if(defined('APP_DEBUG'))
+			$useCache=false;
 		// 如果预处理后的文件存在,且指定使用缓存，则直接返回路径
 		if ($useCache && is_file ( $distPath ))
 			return $distPath;
