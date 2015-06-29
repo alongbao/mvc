@@ -217,6 +217,8 @@ class Application {
 		if (self::$app !== null)
 			return;
 		$app = new self ( $config );
+		/*设置时区*/
+		date_default_timezone_set($app->getAppConfig()->get('time_zone'));
 		self::$app = $app;
 		$app->startApp ();
 	}
