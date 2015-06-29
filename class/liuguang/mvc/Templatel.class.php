@@ -258,6 +258,11 @@ class Templatel {
 	 * @return int 0表示不压缩,1表示gzip,2表示deflate
 	 */
 	public static function getCompressType() {
+		if(!isset(self::$openCompress)){
+			$app = Application::getApp ();
+			$appConfig = $app->getAppConfig ();
+			self::$openCompress=$appConfig->get('tpl_compress');
+		}
 		if (! self::$openCompress)
 			return 0;
 		if (! extension_loaded ( 'zlib' ))

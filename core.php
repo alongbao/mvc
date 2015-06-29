@@ -154,6 +154,7 @@ class Application {
 		$config['time_zone']='Asia/Chongqing';
 		//模板路径
 		$config['tpl_path']=APP_PATH.DIRECTORY_SEPARATOR.'tpl';
+		$config['tpl_compress']=false;
 		//第三方类库路径映射
 		$config['mvc_ext_route']=array (
 				'PHPMailer' => 'class.phpmailer.php',
